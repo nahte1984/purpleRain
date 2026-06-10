@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>meanwhile in Taipei | v1.2</title>
+    <title>meanwhile in Taipei | v1.5</title>
     <style>
         body, html {
             margin: 0;
@@ -25,7 +25,7 @@
             font-size: 18px;
             padding: 12px 24px;
             border: none;
-            border-radius: 12px;
+            border-radius: 200px;
             cursor: pointer;
             z-index: 10;
             position: absolute;
@@ -80,6 +80,9 @@
         
         // 用來計算影片填滿畫面的比例與偏移量
         let drawInfo = { drawWidth: 0, drawHeight: 0, offsetX: 0, offsetY: 0 };
+
+        // 隨機產生一個初始色相偏移值，確保每次網頁載入時的起始顏色都不同
+        const hueOffset = Math.random() * 360;
 
         // 綁定按鈕點擊事件
         btn.addEventListener('click', startExperience);
@@ -181,7 +184,7 @@
             isDetecting = false;
         }
 
-        // 白色雨滴類別
+        // 彩色循環雨滴類別
         class Raindrop {
             constructor() {
                 // 在畫面最上方 y = 0 附近，隨機的 x 座標開始往下墜落
@@ -193,8 +196,10 @@
                 // 每條細線都會有一點點的方向偏移 (非直直落下)
                 this.speedX = (Math.random() - 0.5) * 1.5; 
                 
-                // 將細線顏色改為白色
-                this.color = '#ffffff'; 
+                // 根據「生成當下」的全域時間計算色相 (15000毫秒完成 360 度循環)
+                // 加上 hueOffset 確保每次重新整理網頁時起始顏色不同
+                const currentGlobalHue = ((performance.now() / 15000 * 360) + hueOffset) % 360;
+                this.color = `hsl(${Math.floor(currentGlobalHue)}, 100%, 55%)`; 
                 
                 this.isBouncing = false; // 是否已發生碰撞
             }
