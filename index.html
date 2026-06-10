@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purple Rain Interactive</title>
+    <title>Purple Rain | v1.0</title>
     <style>
         body, html {
             margin: 0;
@@ -63,7 +63,7 @@
 </head>
 <body>
 
-    <button id="start-btn">purple rain</button>
+    <button id="start-btn">Purple Rain ☔️</button>
     <video id="webcam" playsinline autoplay muted></video>
     <canvas id="canvas"></canvas>
 
@@ -86,14 +86,14 @@
 
         async function startExperience() {
             btn.disabled = true;
-            btn.innerText = '載入 AI 模型中...';
+            btn.innerText = 'loading AI...';
 
             try {
                 // 1. 載入 Blazeface 模型
                 await tf.setBackend('webgl'); // 使用 WebGL 加速
                 model = await blazeface.load();
 
-                btn.innerText = '請允許攝影機權限...';
+                btn.innerText = 'initializing camera...';
 
                 // 2. 取得前鏡頭權限
                 const stream = await navigator.mediaDevices.getUserMedia({
