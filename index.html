@@ -18,7 +18,7 @@
             font-family: sans-serif;
         }
 
-        /* 白底圓角按鈕，文字：『purple rain』，字級18級 */
+        /* 白底圓角按鈕，文字 */
         #start-btn {
             background-color: #ffffff;
             color: #000000;
@@ -63,7 +63,7 @@
 </head>
 <body>
 
-    <button id="start-btn">Purple Rain ☔️</button>
+    <button id="start-btn">meanwhile in Taipei...</button>
     <video id="webcam" playsinline autoplay muted></video>
     <canvas id="canvas"></canvas>
 
@@ -93,7 +93,7 @@
                 await tf.setBackend('webgl'); // 使用 WebGL 加速
                 model = await blazeface.load();
 
-                btn.innerText = 'initializing camera...';
+                btn.innerText = 'initializing Camera...';
 
                 // 2. 取得前鏡頭權限
                 const stream = await navigator.mediaDevices.getUserMedia({
