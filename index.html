@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purple Rain | v1.0</title>
+    <title>meanwhile in Taipei | v1.2</title>
     <style>
         body, html {
             margin: 0;
@@ -18,7 +18,7 @@
             font-family: sans-serif;
         }
 
-        /* 白底圓角按鈕，文字 */
+        /* 白底圓角按鈕，文字：『purple rain』，字級18級 */
         #start-btn {
             background-color: #ffffff;
             color: #000000;
@@ -181,7 +181,7 @@
             isDetecting = false;
         }
 
-        // 紫色雨滴類別
+        // 白色雨滴類別
         class Raindrop {
             constructor() {
                 // 在畫面最上方 y = 0 附近，隨機的 x 座標開始往下墜落
@@ -193,7 +193,9 @@
                 // 每條細線都會有一點點的方向偏移 (非直直落下)
                 this.speedX = (Math.random() - 0.5) * 1.5; 
                 
-                this.color = '#d02bff'; // 顏色改為亮紫紅色
+                // 將細線顏色改為白色
+                this.color = '#ffffff'; 
+                
                 this.isBouncing = false; // 是否已發生碰撞
             }
 
