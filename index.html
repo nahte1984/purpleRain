@@ -86,14 +86,14 @@
 
         async function startExperience() {
             btn.disabled = true;
-            btn.innerText = 'loading AI...';
+            btn.innerText = '🤔🤔🤔...';
 
             try {
                 // 1. 載入 Blazeface 模型
                 await tf.setBackend('webgl'); // 使用 WebGL 加速
                 model = await blazeface.load();
 
-                btn.innerText = 'initializing Camera...';
+                btn.innerText = '🫠🫠🫠...';
 
                 // 2. 取得前鏡頭權限
                 const stream = await navigator.mediaDevices.getUserMedia({
