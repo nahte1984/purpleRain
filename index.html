@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>meanwhile in Taipei | v2.1</title>
+    <title>meanwhile in Taipei | v1.2</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, #000000, #130076);
+            background: linear-gradient(to bottom, #000000, #130076); /* 網頁載入時背景是漸層 */
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -122,7 +122,7 @@
                 };
             } catch (err) {
                 console.error("載入或權限取得失敗:", err);
-                btn.innerText = 'camera permission Please!!';
+                btn.innerText = '發生錯誤 (請確認攝影機權限)';
                 btn.disabled = false;
             }
         }
@@ -284,8 +284,11 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             } else {
-                // 如果不顯示攝影機畫面，則塗滿全黑背景
-                ctx.fillStyle = '#000000';
+                // 如果不顯示攝影機畫面，繪製從上到下的漸層背景
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#000000');
+                gradient.addColorStop(1, '#130076');
+                ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
