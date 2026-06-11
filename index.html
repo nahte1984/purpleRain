@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>meanwhile in Taipei | v2.0</title>
+    <title>meanwhile in Taipei | v1.2</title>
     <style>
         body, html {
             margin: 0;
@@ -57,10 +57,9 @@
             display: none;
         }
     </style>
-    <!-- 引入 TensorFlow.js 與 Blazeface (臉部) / Handpose (手部) 辨識模型 -->
+    <!-- 引入 TensorFlow.js 與 Blazeface 臉部辨識模型 -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
 </head>
 <body>
 
@@ -75,10 +74,8 @@
         const ctx = canvas.getContext('2d');
 
         let model = null;
-        let handModel = null; // 新增手部模型變數
         let raindrops = [];
         let faceBoxes = [];
-        let handBoxes = [];   // 新增手部碰撞框陣列
         let isDetecting = false;
         let showVideo = true; // 新增變數：控制是否顯示攝影機畫面
         
@@ -101,13 +98,9 @@
             btn.innerText = '🤔🤔🤔...';
 
             try {
-                // 1. 載入 Blazeface 與 Handpose 模型 (同時載入加速)
+                // 1. 載入 Blazeface 模型
                 await tf.setBackend('webgl'); // 使用 WebGL 加速
-                
-                [model, handModel] = await Promise.all([
-                    blazeface.load(),
-                    handpose.load()
-                ]);
+                model = await blazeface.load();
 
                 btn.innerText = '🫠🫠🫠...';
 
@@ -156,68 +149,43 @@
             }
         }
 
-        // 非同步偵測臉部與手部位置
-        async function detectCollisionAreas() {
-            if (isDetecting || (!model && !handModel) || video.readyState < 2) return;
+        // 非同步偵測臉部位置
+        async function detectFaces() {
+            if (isDetecting || !model || video.readyState < 2) return;
             isDetecting = true;
             try {
-                // 偵測臉部
-                if (model) {
-                    const predictions = await model.estimateFaces(video, false);
-                    faceBoxes = predictions.map(pred => {
-                        const tl = pred.topLeft;
-                        const br = pred.bottomRight;
+                const predictions = await model.estimateFaces(video, false);
+                
+                // 轉換座標至 Canvas (包含水平翻轉的修正)
+                faceBoxes = predictions.map(pred => {
+                    const tl = pred.topLeft;
+                    const br = pred.bottomRight;
 
-                        const vX = tl[0];
-                        const vY = tl[1];
-                        const vW = br[0] - tl[0];
-                        const vH = br[1] - tl[1];
+                    const vX = tl[0];
+                    const vY = tl[1];
+                    const vW = br[0] - tl[0];
+                    const vH = br[1] - tl[1];
 
-                        const cX_unflipped = (vX / video.videoWidth) * drawInfo.drawWidth + drawInfo.offsetX;
-                        const cW = (vW / video.videoWidth) * drawInfo.drawWidth;
-                        const cX_flipped = canvas.width - (cX_unflipped + cW); 
-                        const cY = (vY / video.videoHeight) * drawInfo.drawHeight + drawInfo.offsetY;
-                        const cH = (vH / video.videoHeight) * drawInfo.drawHeight;
+                    // 將影像座標映射到 Canvas 座標
+                    const cX_unflipped = (vX / video.videoWidth) * drawInfo.drawWidth + drawInfo.offsetX;
+                    const cW = (vW / video.videoWidth) * drawInfo.drawWidth;
+                    
+                    // 因為影片作了水平鏡像翻轉，所以 X 軸需要反轉
+                    const cX_flipped = canvas.width - (cX_unflipped + cW); 
+                    
+                    const cY = (vY / video.videoHeight) * drawInfo.drawHeight + drawInfo.offsetY;
+                    const cH = (vH / video.videoHeight) * drawInfo.drawHeight;
 
-                        return {
-                            cx: cX_flipped + cW / 2,
-                            cy: cY + cH / 2 - cH * 0.15,
-                            rx: cW * 0.55,  
-                            ry: cH * 0.65   
-                        };
-                    });
-                }
-
-                // 偵測手部
-                if (handModel) {
-                    const handPredictions = await handModel.estimateHands(video);
-                    handBoxes = handPredictions.map(pred => {
-                        const box = pred.boundingBox;
-                        const tl = box.topLeft;
-                        const br = box.bottomRight;
-
-                        const vX = tl[0];
-                        const vY = tl[1];
-                        const vW = br[0] - tl[0];
-                        const vH = br[1] - tl[1];
-
-                        const cX_unflipped = (vX / video.videoWidth) * drawInfo.drawWidth + drawInfo.offsetX;
-                        const cW = (vW / video.videoWidth) * drawInfo.drawWidth;
-                        const cX_flipped = canvas.width - (cX_unflipped + cW); 
-                        const cY = (vY / video.videoHeight) * drawInfo.drawHeight + drawInfo.offsetY;
-                        const cH = (vH / video.videoHeight) * drawInfo.drawHeight;
-
-                        // 手部的碰撞範圍 (不需要像頭部一樣往上偏移)
-                        return {
-                            cx: cX_flipped + cW / 2,
-                            cy: cY + cH / 2,
-                            rx: cW * 0.6,
-                            ry: cH * 0.6
-                        };
-                    });
-                }
+                    // 建立臉部的橢圓碰撞範圍 (稍微往上偏移來對準使用者的頭頂範圍)
+                    return {
+                        cx: cX_flipped + cW / 2,
+                        cy: cY + cH / 2 - cH * 0.15,
+                        rx: cW * 0.55,  // 半徑 X
+                        ry: cH * 0.65   // 半徑 Y
+                    };
+                });
             } catch(e) {
-                console.error("偵測錯誤:", e);
+                console.error("臉部偵測錯誤:", e);
             }
             isDetecting = false;
         }
@@ -258,15 +226,14 @@
                     this.speedY += 0.3; // 碰撞後加上重力加速度
                 }
 
-                // 細線碰到使用者臉部「或手部」的範圍時會發生碰撞
+                // 細線碰到使用者臉部的範圍時會發生碰撞
                 if (!this.isBouncing) {
-                    const activeBoxes = [...faceBoxes, ...handBoxes]; // 合併臉部與手部範圍
-                    for (let i = 0; i < activeBoxes.length; i++) {
-                        const box = activeBoxes[i];
+                    for (let i = 0; i < faceBoxes.length; i++) {
+                        const box = faceBoxes[i];
                         const dx = this.x - box.cx;
                         const dy = this.y - box.cy;
 
-                        // 判斷是否碰到上半圓的橢圓區域
+                        // 判斷是否碰到頭部上半圓的橢圓區域
                         if (dy < 0) {
                             // 橢圓方程式的距離計算
                             const distanceSquared = (dx * dx) / (box.rx * box.rx) + (dy * dy) / (box.ry * box.ry);
@@ -325,8 +292,8 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // 觸發臉部與手部偵測 (非同步，不阻擋動畫幀)
-            detectCollisionAreas();
+            // 觸發臉部偵測 (非同步，不阻擋動畫幀)
+            detectFaces();
 
             // 隨機動態生成數量不等的雨滴
             const spawnRate = Math.floor(Math.random() * (canvas.width / 150) + 1);
